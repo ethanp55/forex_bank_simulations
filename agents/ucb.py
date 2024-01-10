@@ -1,4 +1,5 @@
 from agents.agent import Agent
+from environment.state import State
 from environment.trade import Trade, TradeType
 import numpy as np
 import random
@@ -21,7 +22,7 @@ class UCB(Agent):
         self.empirical_rewards[self.arm_idx] += net_profit
         self.arm_idx = None
 
-    def place_trade(self, curr_price: float) -> Optional[Trade]:
+    def place_trade(self, state: np.array, curr_price: float) -> Optional[Trade]:
         if self.arm_idx is not None and not self.is_bank:
             return None
 
@@ -69,8 +70,8 @@ class UCB(Agent):
         trade_type = TradeType.BUY if arm == arm_modifier else TradeType.SELL
 
         open_price = curr_price
-        stop_loss = (open_price - self.pips_to_risk) if arm == 1 else (open_price + self.pips_to_risk)
-        stop_gain = (open_price + self.pips_to_risk * self.risk_reward_ratio) if arm == 1 else \
+        stop_loss = (open_price - self.pips_to_risk) if arm == arm_modifier else (open_price + self.pips_to_risk)
+        stop_gain = (open_price + self.pips_to_risk * self.risk_reward_ratio) if arm == arm_modifier else \
             (open_price - self.pips_to_risk * self.risk_reward_ratio)
         trade = Trade(trade_type, open_price, stop_loss, stop_gain, self.percent_to_risk)
 

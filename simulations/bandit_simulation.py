@@ -1,20 +1,21 @@
 from agents.ucb import UCB
 from environment.state import State
 
-NUM_AGENTS = 11
-agents = [UCB() for _ in range(NUM_AGENTS)]
+num_agents = 11
+agents = [UCB() for _ in range(num_agents)]
 agents[-1].is_bank = True
-done, state = False, State(NUM_AGENTS)
+done, state = False, State(num_agents)
 curr_state_matrix = state.vectorize()
 n_iterations = 0
 
 
 while not done:
-    curr_price = state.curr_price()
     trades = []
+    curr_price = state.curr_price()
 
     for i, agent in enumerate(agents):
-        agent_trade = agent.place_trade(curr_price)
+        agent_state = curr_state_matrix[i]
+        agent_trade = agent.place_trade(agent_state, curr_price)
         trades.append(agent_trade)
 
     curr_state_matrix, rewards, done = state.step(trades)
@@ -30,11 +31,11 @@ while not done:
 print(f'Finished in {n_iterations} iterations\n')
 print('Balances: ')
 
-for i in range(NUM_AGENTS):
-    balance = curr_state_matrix[i, -1]
+for i in range(num_agents):
+    balance = state.agent_balances[i]
     print(f'Agent {i}\'s balance: {balance}')
 
 
-final_price = curr_state_matrix[0, -2]
+final_price = state.curr_price()
 print(f'\nFinal price: {final_price}')
 
