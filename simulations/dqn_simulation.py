@@ -36,6 +36,7 @@ for episode in range(num_episodes):
     while not done:
         trades = []
         curr_price = state.curr_price()
+        n_buys, n_sells = curr_state_matrix[0, -3], curr_state_matrix[0, -2]
 
         for i, agent in enumerate(agents):
             agent_state = _filter_state(curr_state_matrix[i], agent.is_bank)
@@ -43,8 +44,12 @@ for episode in range(num_episodes):
             #     print(f'BANK STATE: {agent_state}')
             # else:
             #     print(f'AGENT STATE: {agent_state}')
-            agent_trade = agent.place_trade(agent_state, curr_price)
+            agent_trade = agent.place_trade(agent_state, curr_price, n_buys, n_sells)
             trades.append(agent_trade)
+
+            if not agent.is_bank:
+                n_buys += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.BUY) else 0
+                n_sells += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.SELL) else 0
 
         prev_state_matrix = curr_state_matrix
         curr_state_matrix, rewards, done = state.step(trades)
@@ -121,11 +126,16 @@ for episode in range(test_episodes):
     while not done:
         trades = []
         curr_price = state.curr_price()
+        n_buys, n_sells = curr_state_matrix[0, -3], curr_state_matrix[0, -2]
 
         for i, agent in enumerate(agents):
             agent_state = _filter_state(curr_state_matrix[i], agent.is_bank)
-            agent_trade = agent.place_trade(agent_state, curr_price)
+            agent_trade = agent.place_trade(agent_state, curr_price, n_buys, n_sells)
             trades.append(agent_trade)
+
+            if not agent.is_bank:
+                n_buys += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.BUY) else 0
+                n_sells += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.SELL) else 0
 
         prev_state_matrix = curr_state_matrix
         curr_state_matrix, rewards, done = state.step(trades)

@@ -1,5 +1,6 @@
 from agents.agent import Agent
 from collections import deque
+from copy import deepcopy
 from environment.trade import Trade, TradeType
 import numpy as np
 import random
@@ -74,7 +75,7 @@ class DQNAgent(Agent):
     def trade_finished(self, net_profit: float) -> None:
         self.curr_action = None
 
-    def place_trade(self, state: np.array, curr_price: float) -> Optional[Trade]:
+    def place_trade(self, state: np.array, curr_price: float, n_buys, n_sells) -> Optional[Trade]:
         # If there is already an existing trade, return
         if self.curr_action is not None and not self.is_bank:
             return None
@@ -86,6 +87,11 @@ class DQNAgent(Agent):
         else:
             # scaled_state = self.scaler.scale(state)
             # q_values = self.model(np.expand_dims(scaled_state, 0))
+            state_adjusted = deepcopy(state)
+            if self.is_bank:
+                state_adjusted[-3, ] = n_buys
+                state_adjusted[-2, ] = n_sells
+
             q_values = self.model(np.expand_dims(state, 0))
 
             action = np.argmax(q_values.numpy())
