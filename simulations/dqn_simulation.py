@@ -17,13 +17,13 @@ def _filter_state(state: np.array, is_bank: bool) -> np.array:
     return slice
 
 
-num_agents = 11
+num_agents = 51
 state = State(num_agents)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
 agents = [DQNAgent(i, state_dim, 3, is_bank=True) if i == num_agents - 1 else
           DQNAgent(i, state_dim - 2, is_bank=False) for i in range(num_agents)]
-num_episodes = 50
+num_episodes = 100
 training_profits = {}
 
 for episode in range(num_episodes):
@@ -105,7 +105,10 @@ plt.grid()
 i = 0
 for name, profits in training_profits.items():
     color = line_colors[i]
-    plt.plot(x, profits, label=name, color=color)
+    if name == 'Bank':
+        plt.plot(x, profits, label=name, color=color)
+    else:
+        plt.plot(x, profits, color=color)
     i += 1
 plt.xlabel('Training Episode')
 plt.ylabel('Profit')
