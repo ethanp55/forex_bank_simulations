@@ -17,13 +17,13 @@ def _filter_state(state: np.array, is_bank: bool) -> np.array:
     return slice
 
 
-num_agents = 51
+num_agents = 21
 state = State(num_agents)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
-agents = [DQNAgent(i, state_dim, 3, is_bank=True) if i == num_agents - 1 else
+agents = [DQNAgent(i, state_dim, 2, is_bank=True) if i == num_agents - 1 else
           DQNAgent(i, state_dim - 2, is_bank=False) for i in range(num_agents)]
-num_episodes = 100
+num_episodes = 75
 training_profits = {}
 
 for episode in range(num_episodes):
@@ -40,10 +40,6 @@ for episode in range(num_episodes):
 
         for i, agent in enumerate(agents):
             agent_state = _filter_state(curr_state_matrix[i], agent.is_bank)
-            # if agent.is_bank:
-            #     print(f'BANK STATE: {agent_state}')
-            # else:
-            #     print(f'AGENT STATE: {agent_state}')
             agent_trade = agent.place_trade(agent_state, curr_price, n_buys, n_sells)
             trades.append(agent_trade)
 
@@ -51,21 +47,19 @@ for episode in range(num_episodes):
                 n_buys += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.BUY) else 0
                 n_sells += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.SELL) else 0
 
-        prev_state_matrix = curr_state_matrix
         curr_state_matrix, rewards, done = state.step(trades)
         n_iterations += 1
 
         for i, reward in enumerate(rewards):
             agent = agents[i]
             trade = trades[i]
-            agent_state = _filter_state(prev_state_matrix[i], agent.is_bank)
             agent_next_state = _filter_state(curr_state_matrix[i], agent.is_bank)
-            # if agent.is_bank:
-            #     action = 0 if trade.trade_type is TradeType.BUY else 1
-            # else:
-            #     action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
-            action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
-            agent.add_experience(agent_state, action, reward, agent_next_state, done)
+            if agent.is_bank:
+                action = 0 if trade.trade_type is TradeType.BUY else 1
+            else:
+                action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
+            # action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
+            agent.add_experience(action, reward, agent_next_state, done)
             agent.train()
 
             if reward != 0:
@@ -140,7 +134,6 @@ for episode in range(test_episodes):
                 n_buys += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.BUY) else 0
                 n_sells += 1 if (agent_trade is not None and agent_trade.trade_type is TradeType.SELL) else 0
 
-        prev_state_matrix = curr_state_matrix
         curr_state_matrix, rewards, done = state.step(trades)
         n_iterations += 1
 
@@ -155,7 +148,10 @@ for episode in range(test_episodes):
 
     for i in range(num_agents):
         balance = state.agent_balances[i]
-        print(f'Agent {i}\'s balance: {balance}')
+        agent_name = f'Agent {i}' if i != num_agents - 1 else 'Bank'
+        starting_balance_adjusted = starting_balance if agent_name != 'Bank' else bank_starting_balance
+        profit = balance - starting_balance_adjusted
+        print(f'{agent_name}\'s profit: {profit}')
 
     # final_price = state.curr_price()
     # print(f'\nFinal price: {final_price}\n')

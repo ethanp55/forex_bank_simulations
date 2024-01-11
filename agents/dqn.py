@@ -71,11 +71,14 @@ class DQNAgent(Agent):
         self.scaler = DynamicMinMaxScaler(state_dim)
 
         self.training_started = False
+        self.state = None
 
     def trade_finished(self, net_profit: float) -> None:
         self.curr_action = None
 
     def place_trade(self, state: np.array, curr_price: float, n_buys, n_sells) -> Optional[Trade]:
+        self.state = deepcopy(state)
+
         # If there is already an existing trade, return
         if self.curr_action is not None and not self.is_bank:
             return None
@@ -85,29 +88,24 @@ class DQNAgent(Agent):
             action = np.random.choice(self.action_dim)
 
         else:
-            # scaled_state = self.scaler.scale(state)
-            # q_values = self.model(np.expand_dims(scaled_state, 0))
             state_adjusted = deepcopy(state)
             if self.is_bank:
                 state_adjusted[-3, ] = n_buys
                 state_adjusted[-2, ] = n_sells
 
-            q_values = self.model(np.expand_dims(state, 0))
+            scaled_state = self.scaler.scale(state_adjusted)
+            q_values = self.model(np.expand_dims(scaled_state, 0))
+            # q_values = self.model(np.expand_dims(state, 0))
 
             action = np.argmax(q_values.numpy())
 
-        # if self.is_bank:
-        #     print(f'BANK ACTION: {action}')
-
         # Action representing "do nothing"
-        # if action == 0 and not self.is_bank:
-        if action == 0:
+        if action == 0 and not self.is_bank:
             return None
 
         # Place the trade
         self.curr_action = action
-        # action_modifier = 0 if self.is_bank else 1
-        action_modifier = 1
+        action_modifier = 0 if self.is_bank else 1
         trade_type = TradeType.BUY if action == action_modifier else TradeType.SELL
         open_price = curr_price
         stop_loss = (open_price - self.pips_to_risk) if action == action_modifier else (open_price + self.pips_to_risk)
@@ -146,14 +144,14 @@ class DQNAgent(Agent):
         gradients = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
 
-    def add_experience(self, state: np.array, action: int, reward: float, next_state: np.array, done: bool):
+    def add_experience(self, action: int, reward: float, next_state: np.array, done: bool):
         # Accumulate experiences over multiple time steps
-        # scaled_state = self.scaler.scale(state)
-        # scaled_next_state = self.scaler.scale(next_state)
-        # self.scaler.update(next_state)
-        #
-        # self.current_episode_experiences.append((scaled_state, action, reward, scaled_next_state, done))
-        self.current_episode_experiences.append((state, action, reward, next_state, done))
+        scaled_state = self.scaler.scale(self.state)
+        scaled_next_state = self.scaler.scale(next_state)
+        self.scaler.update(next_state)
+
+        self.current_episode_experiences.append((scaled_state, action, reward, scaled_next_state, done))
+        # self.current_episode_experiences.append((self.state, action, reward, next_state, done))
 
         # If the episode is done, add the accumulated experiences to the replay buffer
         if done:
