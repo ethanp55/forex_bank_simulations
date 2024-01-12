@@ -17,14 +17,15 @@ def _filter_state(state: np.array, is_bank: bool) -> np.array:
     return slice
 
 
-num_agents = 21
+num_agents = 50
+num_agents += 1  # An extra agent that represents the bank
 state = State(num_agents)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
 agents = [DQNAgent(i, state_dim, 2, is_bank=True) if i == num_agents - 1 else
           DQNAgent(i, state_dim - 2, is_bank=False) for i in range(num_agents)]
-num_episodes = 75
-training_profits = {}
+num_episodes = 100
+training_profits, test_profits = {}, {}
 
 for episode in range(num_episodes):
     print(f'EPISODE {episode + 1}')
@@ -75,9 +76,6 @@ for episode in range(num_episodes):
         profit = balance - starting_balance_adjusted
         print(f'{agent_name}\'s profit: {profit}')
         training_profits[agent_name] = training_profits.get(agent_name, []) + [profit]
-
-    # final_price = state.curr_price()
-    # print(f'\nFinal price: {final_price}')
 
     if episode % 1 == 0:
         print('\nUpdating target networks')
@@ -152,6 +150,25 @@ for episode in range(test_episodes):
         starting_balance_adjusted = starting_balance if agent_name != 'Bank' else bank_starting_balance
         profit = balance - starting_balance_adjusted
         print(f'{agent_name}\'s profit: {profit}')
+        test_profits[agent_name] = test_profits.get(agent_name, []) + [profit]
 
-    # final_price = state.curr_price()
-    # print(f'\nFinal price: {final_price}\n')
+# Generate test profits plot
+cmap = get_cmap('tab20')
+line_colors = [cmap(i % 20) for i in range(len(test_profits))]
+x = range(0, test_episodes)
+plt.grid()
+i = 0
+for name, profits in test_profits.items():
+    color = line_colors[i]
+    if name == 'Bank':
+        plt.plot(x, profits, label=name, color=color)
+    else:
+        plt.plot(x, profits, color=color)
+    i += 1
+plt.xlabel('Test Episode')
+plt.ylabel('Profit')
+plt.legend(loc='best')
+plt.title(f'Total Profit Achieved During Each Test Episode')
+plt.savefig(f'../results/dqn_test_profits', bbox_inches='tight')
+plt.clf()
+

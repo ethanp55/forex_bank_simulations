@@ -76,7 +76,7 @@ class DQNAgent(Agent):
     def trade_finished(self, net_profit: float) -> None:
         self.curr_action = None
 
-    def place_trade(self, state: np.array, curr_price: float, n_buys, n_sells) -> Optional[Trade]:
+    def place_trade(self, state: np.array, curr_price: float, n_buys: int = 0, n_sells: int = 0) -> Optional[Trade]:
         self.state = deepcopy(state)
 
         # If there is already an existing trade, return
@@ -95,7 +95,6 @@ class DQNAgent(Agent):
 
             scaled_state = self.scaler.scale(state_adjusted)
             q_values = self.model(np.expand_dims(scaled_state, 0))
-            # q_values = self.model(np.expand_dims(state, 0))
 
             action = np.argmax(q_values.numpy())
 
@@ -151,7 +150,6 @@ class DQNAgent(Agent):
         self.scaler.update(next_state)
 
         self.current_episode_experiences.append((scaled_state, action, reward, scaled_next_state, done))
-        # self.current_episode_experiences.append((self.state, action, reward, next_state, done))
 
         # If the episode is done, add the accumulated experiences to the replay buffer
         if done:
