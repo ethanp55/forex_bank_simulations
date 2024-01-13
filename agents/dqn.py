@@ -6,7 +6,6 @@ import numpy as np
 import random
 import tensorflow as tf
 from tensorflow.keras import layers
-from tensorflow.keras.models import load_model, save_model
 from typing import Optional
 
 
@@ -39,16 +38,14 @@ class DQN(tf.keras.Model):
 
 
 class DQNAgent(Agent):
-    def __init__(self, agent_number: int, state_dim: int, action_dim: int = 3, learning_rate: float = 0.001,
+    def __init__(self, name: str, state_dim: int, action_dim: int = 3, learning_rate: float = 0.001,
                  discount_factor: float = 0.99, epsilon: float = 0.1, replay_buffer_size: int = 10000,
                  batch_size: int = 64, is_bank: bool = False) -> None:
-        super().__init__()
-        self.agent_number = agent_number
+        super().__init__(name, is_bank=is_bank)
         self.action_dim = action_dim
         self.discount_factor = discount_factor
         self.epsilon = epsilon
         self.batch_size = batch_size
-        self.is_bank = is_bank
 
         # DQN model and target model
         self.model = DQN(state_dim, action_dim)
@@ -155,9 +152,3 @@ class DQNAgent(Agent):
         if done:
             self.replay_buffer.extend(self.current_episode_experiences)
             self.current_episode_experiences = []
-
-    def save(self) -> None:
-        save_model(self.model, f'../agents/model_files/agent_{self.agent_number}_model')
-
-    def load(self) -> None:
-        self.model = load_model(f'../agents/model_files/agent_{self.agent_number}_model')

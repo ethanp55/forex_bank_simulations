@@ -1,4 +1,11 @@
 from agents.dqn import DQNAgent
+from agents.eee import EEE
+from agents.exp3 import EXP3
+from agents.macd import MACD
+from agents.macd_stochastic import MACDStochastic
+from agents.rsi import RSI
+from agents.stochastic import Stochastic
+from agents.ucb import UCB
 from environment.state import State
 from environment.trade import TradeType
 from matplotlib.cm import get_cmap
@@ -22,9 +29,22 @@ num_agents += 1  # An extra agent that represents the bank
 state = State(num_agents)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
-agents = [DQNAgent('Bank', state_dim, 2, is_bank=True) if i == num_agents - 1 else
-          DQNAgent(f'DQN_{i}', state_dim - 2, is_bank=False) for i in range(num_agents)]
-num_episodes = 100
+n_agent_types = 8
+per_agent_type = (num_agents - 1) // n_agent_types
+n_last_agent_type = num_agents - 1 - (per_agent_type * (n_agent_types - 1))
+ucb_agents = [UCB(f'UCB_{i}') for i in range(per_agent_type)]
+macd_agents = [MACD(f'MACD_{i}') for i in range(per_agent_type)]
+eee_agents = [EEE(f'EEE_{i}') for i in range(per_agent_type)]
+exp3_agents = [EXP3(f'EXP3_{i}') for i in range(per_agent_type)]
+dqn_agents = [DQNAgent(f'DQN_{i}', state_dim - 2) for i in range(per_agent_type)]
+rsi_agents = [RSI(f'RSI_{i}') for i in range(per_agent_type)]
+macd_stoch_agents = [MACDStochastic(f'MACDStoch_{i}') for i in range(per_agent_type)]
+stochastic_agents = [Stochastic(f'Stoch_{i}') for i in range(n_last_agent_type)]
+bank_agents = [DQNAgent(f'Bank', state_dim, 2, is_bank=True)]
+agents = ucb_agents + macd_agents + eee_agents + exp3_agents + dqn_agents + rsi_agents + macd_stoch_agents + \
+         stochastic_agents + bank_agents
+assert len(agents) == num_agents
+num_episodes = 200
 training_profits, test_profits = {}, {}
 
 for episode in range(num_episodes):
@@ -53,15 +73,17 @@ for episode in range(num_episodes):
 
         for i, reward in enumerate(rewards):
             agent = agents[i]
-            trade = trades[i]
-            agent_next_state = _filter_state(curr_state_matrix[i], agent.is_bank)
-            if agent.is_bank:
-                action = 0 if trade.trade_type is TradeType.BUY else 1
-            else:
-                action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
-            # action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
-            agent.add_experience(action, reward, agent_next_state, done)
-            agent.train()
+
+            if isinstance(agent, DQNAgent):
+                trade = trades[i]
+                agent_next_state = _filter_state(curr_state_matrix[i], agent.is_bank)
+                if agent.is_bank:
+                    action = 0 if trade.trade_type is TradeType.BUY else 1
+                else:
+                    action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
+                # action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
+                agent.add_experience(action, reward, agent_next_state, done)
+                agent.train()
 
             if reward != 0:
                 agent.trade_finished(reward)
@@ -81,7 +103,8 @@ for episode in range(num_episodes):
         print('\nUpdating target networks')
 
         for agent in agents:
-            agent.update_networks()
+            if isinstance(agent, DQNAgent):
+                agent.update_networks()
 
     print()
 
@@ -102,7 +125,7 @@ plt.xlabel('Training Episode')
 plt.ylabel('Profit')
 plt.legend(loc='best')
 plt.title(f'Total Profit Achieved During Each Training Episode')
-plt.savefig(f'../results/dqn_training_profits', bbox_inches='tight')
+plt.savefig(f'../results/various_training_profits', bbox_inches='tight')
 plt.clf()
 
 test_episodes = 5
@@ -165,6 +188,6 @@ plt.xlabel('Test Episode')
 plt.ylabel('Profit')
 plt.legend(loc='best')
 plt.title(f'Total Profit Achieved During Each Test Episode')
-plt.savefig(f'../results/dqn_test_profits', bbox_inches='tight')
+plt.savefig(f'../results/various_test_profits', bbox_inches='tight')
 plt.clf()
 

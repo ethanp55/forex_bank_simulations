@@ -4,11 +4,13 @@ from typing import Optional
 
 
 class Agent:
-    def __init__(self, percent_to_risk: float = 0.02, pips_to_risk: float = 0.0050,
-                 risk_reward_ratio: float = 1.5) -> None:
+    def __init__(self, name: str, percent_to_risk: float = 0.02, pips_to_risk: float = 0.0050,
+                 risk_reward_ratio: float = 1.5, is_bank: bool = False) -> None:
+        self.name = name
         self.percent_to_risk = percent_to_risk
         self.pips_to_risk = pips_to_risk
         self.risk_reward_ratio = risk_reward_ratio
+        self.is_bank = is_bank
 
     def trade_finished(self, net_profit: float) -> None:
         pass

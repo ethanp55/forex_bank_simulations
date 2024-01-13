@@ -2,7 +2,7 @@ from agents.ucb import UCB
 from environment.state import State
 
 num_agents = 11
-agents = [UCB() for _ in range(num_agents)]
+agents = [UCB(f'UCB_{i}') if i < num_agents - 1 else UCB('Bank') for i in range(num_agents)]
 agents[-1].is_bank = True
 done, state = False, State(num_agents)
 curr_state_matrix = state.vectorize()

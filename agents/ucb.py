@@ -6,10 +6,9 @@ from typing import Optional
 
 
 class UCB(Agent):
-    def __init__(self, delta: float = 0.99, is_bank: bool = False, discount_factor: float = 0.99) -> None:
-        super().__init__()
+    def __init__(self, name: str, delta: float = 0.99, is_bank: bool = False, discount_factor: float = 0.99) -> None:
+        super().__init__(name, is_bank=is_bank)
         self.delta = delta
-        self.is_bank = is_bank
         self.discount_factor = discount_factor
         self.arms = [0, 1, 2]
         self.arm_idx = None
