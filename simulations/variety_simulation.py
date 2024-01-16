@@ -44,7 +44,7 @@ bank_agents = [DQNAgent(f'Bank', state_dim, 2, is_bank=True)]
 agents = ucb_agents + macd_agents + eee_agents + exp3_agents + dqn_agents + rsi_agents + macd_stoch_agents + \
          stochastic_agents + bank_agents
 assert len(agents) == num_agents
-num_episodes = 200
+num_episodes = 300
 training_profits, test_profits = {}, {}
 
 for episode in range(num_episodes):

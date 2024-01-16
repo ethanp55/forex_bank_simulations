@@ -24,7 +24,7 @@ state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
 agents = [DQNAgent('Bank', state_dim, 2, is_bank=True) if i == num_agents - 1 else
           DQNAgent(f'DQN_{i}', state_dim - 2, is_bank=False) for i in range(num_agents)]
-num_episodes = 100
+num_episodes = 300
 training_profits, test_profits = {}, {}
 
 for episode in range(num_episodes):
