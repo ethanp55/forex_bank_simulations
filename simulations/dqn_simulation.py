@@ -19,18 +19,19 @@ def _filter_state(state: np.array, is_bank: bool) -> np.array:
 
 num_agents = 50
 num_agents += 1  # An extra agent that represents the bank
-state = State(num_agents)
+bank_balance_multiplier = 0.8
+state = State(num_agents, bank_balance_multiplier=bank_balance_multiplier)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
 agents = [DQNAgent('Bank', state_dim, 2, is_bank=True) if i == num_agents - 1 else
           DQNAgent(f'DQN_{i}', state_dim - 2, is_bank=False) for i in range(num_agents)]
-num_episodes = 300
+num_episodes = 1000
 training_profits, test_profits = {}, {}
 
 for episode in range(num_episodes):
     print(f'EPISODE {episode + 1}')
 
-    done, state = False, State(num_agents)
+    done, state = False, State(num_agents, bank_balance_multiplier=bank_balance_multiplier)
     curr_state_matrix = state.vectorize()
     n_iterations = 0
 
@@ -102,7 +103,7 @@ plt.xlabel('Training Episode')
 plt.ylabel('Profit')
 plt.legend(loc='best')
 plt.title(f'Total Profit Achieved During Each Training Episode')
-plt.savefig(f'../results/dqn_training_profits', bbox_inches='tight')
+plt.savefig(f'../results/dqn_training_profits_0_{int(bank_balance_multiplier * 10)}', bbox_inches='tight')
 plt.clf()
 
 test_episodes = 5
@@ -110,7 +111,7 @@ test_episodes = 5
 for episode in range(test_episodes):
     print(f'TEST EPISODE {episode + 1}')
 
-    done, state = False, State(num_agents)
+    done, state = False, State(num_agents, bank_balance_multiplier=bank_balance_multiplier)
     curr_state_matrix = state.vectorize()
     n_iterations = 0
 
@@ -165,6 +166,6 @@ plt.xlabel('Test Episode')
 plt.ylabel('Profit')
 plt.legend(loc='best')
 plt.title(f'Total Profit Achieved During Each Test Episode')
-plt.savefig(f'../results/dqn_test_profits', bbox_inches='tight')
+plt.savefig(f'../results/dqn_test_profits_0_{int(bank_balance_multiplier * 10)}', bbox_inches='tight')
 plt.clf()
 
