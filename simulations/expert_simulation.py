@@ -23,7 +23,7 @@ def _filter_state(state: np.array, is_bank: bool) -> np.array:
 
 num_agents = 50
 num_agents += 1  # An extra agent that represents the bank
-bank_balance_multiplier = 0.8
+bank_balance_multiplier = 0.5
 state = State(num_agents, bank_balance_multiplier=bank_balance_multiplier)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
@@ -37,7 +37,7 @@ stochastic_agents = [Stochastic(f'Stoch_{i}') for i in range(n_last_agent_type)]
 bank_agents = [DQNAgent(f'Bank', state_dim, 2, is_bank=True)]
 agents = macd_agents + rsi_agents + macd_stoch_agents + stochastic_agents + bank_agents
 assert len(agents) == num_agents
-num_episodes = 1000
+num_episodes = 1500
 training_profits, test_profits = {}, {}
 
 for episode in range(num_episodes):
