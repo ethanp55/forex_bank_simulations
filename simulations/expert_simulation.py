@@ -23,7 +23,7 @@ def _filter_state(state: np.array, is_bank: bool) -> np.array:
 
 num_agents = 50
 num_agents += 1  # An extra agent that represents the bank
-bank_balance_multiplier = 0.5
+bank_balance_multiplier = 0.1
 state = State(num_agents, bank_balance_multiplier=bank_balance_multiplier)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
