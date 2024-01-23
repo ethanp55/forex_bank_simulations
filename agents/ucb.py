@@ -20,7 +20,7 @@ class UCB(Agent):
         self.empirical_rewards[self.arm_idx] += net_profit
         self.arm_idx = None
 
-    def place_trade(self, state: np.array, curr_price: float, n_buys: int = 0, n_sells: int = 0) -> Optional[Trade]:
+    def place_trade(self, state: np.array, curr_price: float) -> Optional[Trade]:
         if self.arm_idx is not None and not self.is_bank:
             return None
 

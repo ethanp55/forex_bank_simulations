@@ -25,7 +25,7 @@ class EEE(Agent):
         self.phase_rewards.append(net_profit)
         self.curr_trade = None
 
-    def place_trade(self, state: np.array, curr_price: float, n_buys: int = 0, n_sells: int = 0) -> Optional[Trade]:
+    def place_trade(self, state: np.array, curr_price: float) -> Optional[Trade]:
         if self.curr_trade is not None:
             return None
 

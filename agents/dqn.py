@@ -73,7 +73,7 @@ class DQNAgent(Agent):
     def trade_finished(self, net_profit: float) -> None:
         self.curr_action = None
 
-    def place_trade(self, state: np.array, curr_price: float, n_buys: int = 0, n_sells: int = 0) -> Optional[Trade]:
+    def place_trade(self, state: np.array, curr_price: float) -> Optional[Trade]:
         self.state = deepcopy(state)
 
         # If there is already an existing trade, return
@@ -86,10 +86,6 @@ class DQNAgent(Agent):
 
         else:
             state_adjusted = deepcopy(state)
-            if self.is_bank:
-                state_adjusted[-3, ] = n_buys
-                state_adjusted[-2, ] = n_sells
-
             scaled_state = self.scaler.scale(state_adjusted)
             q_values = self.model(np.expand_dims(scaled_state, 0))
 

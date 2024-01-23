@@ -15,5 +15,5 @@ class Agent:
     def trade_finished(self, net_profit: float) -> None:
         pass
 
-    def place_trade(self, state: np.array, curr_price: float, n_buys: int = 0, n_sells: int = 0) -> Optional[Trade]:
+    def place_trade(self, state: np.array, curr_price: float) -> Optional[Trade]:
         pass

@@ -187,17 +187,10 @@ class State:
         macdhist = macd - macdsignal
         qqe_up, qqe_down, qqe_val = qqe_mod(price_series)
 
-        n_buys, n_sells = 0, 0
-
-        for trade in self.open_trades.values():
-            if trade is not None:
-                n_buys += 1 if trade.trade_type is TradeType.BUY else 0
-                n_sells += 1 if trade.trade_type is TradeType.SELL else 0
-
         vector = [ma_50.iloc[-1, ], ma_25.iloc[-1, ], ema_50.iloc[-1, ], ema_25.iloc[-1, ], smma_50.iloc[-1, ],
                   smma_25.iloc[-1, ], curr_rsi.iloc[-1, ], rsi_sma.iloc[-1, ], slowk_rsi.iloc[-1, ],
                   slowd_rsi.iloc[-1, ], macd.iloc[-1, ], macdsignal.iloc[-1, ], macdhist.iloc[-1, ], qqe_up.iloc[-1, ],
-                  qqe_down.iloc[-1, ], qqe_val.iloc[-1, ], self.curr_price(), n_buys, n_sells]
+                  qqe_down.iloc[-1, ], qqe_val.iloc[-1, ], self.curr_price()]
 
         final_matrix = []
 
