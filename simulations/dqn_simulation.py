@@ -4,6 +4,7 @@ from environment.trade import TradeType
 from matplotlib.cm import get_cmap
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
 
 def _filter_state(state: np.array, is_bank: bool) -> np.array:
@@ -19,13 +20,13 @@ def _filter_state(state: np.array, is_bank: bool) -> np.array:
 
 num_agents = 50
 num_agents += 1  # An extra agent that represents the bank
-bank_balance_multiplier = 0.1
+bank_balance_multiplier = 1.0
 state = State(num_agents, bank_balance_multiplier=bank_balance_multiplier)
 state_dim, starting_balance, bank_starting_balance = \
     state.vectorize().shape[-1], state.starting_balance, state.bank_starting_balance
-agents = [DQNAgent('Bank', state_dim, 2, is_bank=True) if i == num_agents - 1 else
+agents = [DQNAgent('Bank', state_dim, 3, is_bank=True) if i == num_agents - 1 else
           DQNAgent(f'DQN_{i}', state_dim - 2, is_bank=False) for i in range(num_agents)]
-num_episodes = 1500
+num_episodes = 1000
 training_profits, test_profits = {}, {}
 
 for episode in range(num_episodes):
@@ -57,7 +58,8 @@ for episode in range(num_episodes):
             trade = trades[i]
             agent_next_state = _filter_state(curr_state_matrix[i], agent.is_bank)
             if agent.is_bank:
-                action = 0 if trade.trade_type is TradeType.BUY else 1
+                # action = 0 if trade.trade_type is TradeType.BUY else 1
+                action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
             else:
                 action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
             # action = 0 if trade is None else (1 if trade.trade_type is TradeType.BUY else 2)
@@ -83,6 +85,10 @@ for episode in range(num_episodes):
 
         for agent in agents:
             agent.update_networks()
+
+    for agent in agents:
+        if isinstance(agent, DQNAgent):
+            agent.update_epsilon()
 
     print()
 
@@ -169,3 +175,9 @@ plt.title(f'Total Profit Achieved During Each Test Episode')
 plt.savefig(f'../results/dqn_test_profits_0_{int(bank_balance_multiplier * 10)}', bbox_inches='tight')
 plt.clf()
 
+# Save data (for later processing, if needed)
+with open(f'../results/data/dqn_training_profits_0_{int(bank_balance_multiplier * 10)}.pickle', 'wb') as f:
+    pickle.dump(training_profits, f)
+
+with open(f'../results/data/dqn_test_profits_0_{int(bank_balance_multiplier * 10)}.pickle', 'wb') as f:
+    pickle.dump(test_profits, f)

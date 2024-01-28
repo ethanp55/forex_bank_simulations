@@ -14,3 +14,4 @@ class Trade:
     stop_loss: float
     stop_gain: float
     percent_to_risk: float
+    time_active: int = 0

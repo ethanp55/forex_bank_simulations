@@ -39,12 +39,13 @@ class DQN(tf.keras.Model):
 
 class DQNAgent(Agent):
     def __init__(self, name: str, state_dim: int, action_dim: int = 3, learning_rate: float = 0.001,
-                 discount_factor: float = 0.99, epsilon: float = 0.1, replay_buffer_size: int = 10000,
-                 batch_size: int = 64, is_bank: bool = False) -> None:
+                 discount_factor: float = 0.99, epsilon: float = 0.1, epsilon_decay: float = 0.99,
+                 replay_buffer_size: int = 50000, batch_size: int = 512, is_bank: bool = False) -> None:
         super().__init__(name, is_bank=is_bank)
         self.action_dim = action_dim
         self.discount_factor = discount_factor
         self.epsilon = epsilon
+        self.epsilon_decay = epsilon_decay
         self.batch_size = batch_size
 
         # DQN model and target model
@@ -69,6 +70,9 @@ class DQNAgent(Agent):
 
         self.training_started = False
         self.state = None
+
+    def update_epsilon(self) -> None:
+        self.epsilon *= self.epsilon_decay
 
     def trade_finished(self, net_profit: float) -> None:
         self.curr_action = None
@@ -96,12 +100,15 @@ class DQNAgent(Agent):
             action = np.argmax(q_values.numpy())
 
         # Action representing "do nothing"
-        if action == 0 and not self.is_bank:
+        # if action == 0 and not self.is_bank:
+        #     return None
+        if action == 0:
             return None
 
         # Place the trade
         self.curr_action = action
-        action_modifier = 0 if self.is_bank else 1
+        # action_modifier = 0 if self.is_bank else 1
+        action_modifier = 1
         trade_type = TradeType.BUY if action == action_modifier else TradeType.SELL
         open_price = curr_price
         stop_loss = (open_price - self.pips_to_risk) if action == action_modifier else (open_price + self.pips_to_risk)
