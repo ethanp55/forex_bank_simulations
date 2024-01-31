@@ -8,8 +8,10 @@ from typing import List, Optional, Tuple
 
 class State:
     def __init__(self, num_agents: int, curr_price: float = 1.0000, max_iterations: int = 100,
-                 starting_balance: float = 10000.0, bank_balance_multiplier: float = 1.0) -> None:
+                 starting_balance: float = 10000.0, bank_balance_multiplier: float = 1.0,
+                 max_periods_open: int = 7) -> None:
         self.num_agents = num_agents
+        self.max_periods_open = max_periods_open
         self.bank_agent_index = num_agents - 1
         self.prices = deque(maxlen=100)
         price = curr_price
@@ -68,7 +70,8 @@ class State:
             if existing_trade is not None:
                 agent_balance = self.agent_balances[agent_index]
                 trade_amount, trade_closed = \
-                    MarketCalculations.calculate_trade_amount(existing_trade, new_price, agent_balance)
+                    MarketCalculations.calculate_trade_amount(existing_trade, new_price, agent_balance,
+                                                              self.max_periods_open)
                 rewards[agent_index] = trade_amount
                 rewards[self.bank_agent_index] += -trade_amount  # The bank gains the opposite of the trader
 
@@ -76,6 +79,9 @@ class State:
 
                 if trade_closed:
                     self.open_trades[agent_index] = None
+
+                else:
+                    self.open_trades[agent_index].time_active += 1
 
         assert len(rewards) == self.num_agents
 
