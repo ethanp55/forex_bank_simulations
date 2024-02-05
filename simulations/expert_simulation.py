@@ -79,6 +79,10 @@ for episode in range(num_episodes):
             if isinstance(agent, DQNAgent):
                 agent.update_networks()
 
+    for agent in agents:
+        if isinstance(agent, DQNAgent):
+            agent.update_epsilon()
+
     print()
 
 # Generate training profits plot
